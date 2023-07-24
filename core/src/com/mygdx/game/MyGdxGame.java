@@ -38,7 +38,6 @@ public class MyGdxGame extends Game {
 	private volatile JSONObject lastGameState;
 	@Override
 	public void create() {
-		Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
 		neutralizerSkin = new Skin(Gdx.files.internal("skin/uiskin.json"));
 		setMenuScreen();
 	}
