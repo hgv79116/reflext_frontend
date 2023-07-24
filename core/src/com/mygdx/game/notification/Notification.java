@@ -35,11 +35,12 @@ public class Notification {
             float screenHeight = Gdx.graphics.getHeight();
 
             batch.end();
-//            Gdx.gl.glEnable(GL30.GL_BLEND);
-//            Gdx.gl.glBlendFunc(GL30.GL_SRC_ALPHA, GL30.GL_ONE_MINUS_SRC_ALPHA);
+            Gdx.gl.glEnable(GL30.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL30.GL_SRC_ALPHA, GL30.GL_ONE_MINUS_SRC_ALPHA);
 //            sr.setProjectionMatrix(camera.combined);
             sr.begin(ShapeRenderer.ShapeType.Filled);
-            sr.setColor(Color.GRAY);
+            sr.setColor(Color.BLACK);
+            sr.getColor().a = 0.3f;
             sr.rect(0, 0, screenWidth, screenHeight);
             sr.end();
 //            sr.begin(ShapeRenderer.ShapeType.Filled);
@@ -47,6 +48,11 @@ public class Notification {
 //            sr.rect(0.25f * screenWidth, 0.25f * screenHeight, 0.5f * screenWidth, 0.5f * screenHeight);
 //            sr.end();
             batch.begin();
+        }
+
+        @Override
+        public Actor hit(float x, float y, boolean touchable) {
+            return this;
         }
     }
     public Notification(String message, List<String> options, List<Runnable> callbacks, Skin skin) {

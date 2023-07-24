@@ -97,5 +97,6 @@ project(":core") {
         implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
         api "com.kotcrab.vis:vis-ui:$visuiVersion"
         implementation "org.json:json:20230618";
+        implementation group: 'org.javatuples', name: 'javatuples', version: '1.2';
     }
 }

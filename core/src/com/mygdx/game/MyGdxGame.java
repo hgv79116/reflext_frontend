@@ -8,13 +8,14 @@ import com.mygdx.game.notification.ConnectingNotification;
 import com.mygdx.game.notification.FailedConnectionNotification;
 import com.mygdx.game.notification.Notification;
 import com.mygdx.game.screens.game_screens.GameInitializedScreen;
-import com.mygdx.game.screens.game_screens.GameUninitializedScreen;
 import com.mygdx.game.screens.game_screens.InGameScreen;
 import com.mygdx.game.screens.game_screens.InQueueScreen;
 import com.mygdx.game.screens.MenuScreen;
 import networking.connection_action_message.ConnectMessage;
 import networking.connection_action_message.DisconnectMessage;
 import networking.JsonMessage;
+import networking.game_action_message.HitMessage;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.net.Socket;
@@ -33,9 +34,11 @@ public class MyGdxGame extends Game {
 	private PrintStream socketPrint;
 	BlockingQueue<JsonMessage> incomingMessages = null;
 	private Thread socketListener;
-
+	private volatile long lastGameStateUpdateTime = -1;
+	private volatile JSONObject lastGameState;
 	@Override
 	public void create() {
+		Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
 		neutralizerSkin = new Skin(Gdx.files.internal("skin/uiskin.json"));
 		setMenuScreen();
 	}
@@ -97,6 +100,14 @@ public class MyGdxGame extends Game {
 		return socket != null;
 	}
 
+	public long getLastGameStateUpdateTime() {
+		return lastGameStateUpdateTime;
+	}
+
+	public JSONObject getLastGameState() {
+		return lastGameState;
+	}
+
 	private void initializeConnection(String ipAddress, int port) throws IOException {
 		System.out.println(ipAddress);
 		System.out.println(port);
@@ -140,8 +151,6 @@ public class MyGdxGame extends Game {
 										System.out.println("Putting messsage in queue met with exception " + e);
 									}
 								}
-
-								System.out.println(line);
 							}
 							else {
 								currentLine.append((char)c);
@@ -159,6 +168,10 @@ public class MyGdxGame extends Game {
 
 		// start listening
 		this.socketListener.start();
+	}
+
+	public void sendHitMessage(int playerId, int circleId) {
+		socketPrint.println(new HitMessage(playerId, circleId));
 	}
 
 	private void disconnect() throws IOException {
@@ -215,13 +228,14 @@ public class MyGdxGame extends Game {
 		else if(messageCategory.equals("GAME_STATUS")) {
 			String gameStatusMessageCategory = message.getHeader().getString("gameStatusMessageCategory");
 			if(gameStatusMessageCategory.equals("GAME_STARTED")) {
-				gameStart();
+				gameStart(message.getBody().getJSONObject("initialGameState"),
+						message.getBody().getInt("playerId"));
 			}
 			else if(gameStatusMessageCategory.equals("GAME_ENDED")) {
 				gameEnd();
 			}
 			else if(gameStatusMessageCategory.equals("GAME_STATE")) {
-				gameUpdate();
+				gameUpdate(message.getBody().getJSONObject("gameState"));
 			}
 		}
 	}
@@ -239,24 +253,27 @@ public class MyGdxGame extends Game {
 	 	setGameInitializedScreen();
 	}
 
-	private void gameStart() {
-		setInGameScreen();
+	private void gameStart(JSONObject initialGameState, int playerId) {
+		gameUpdate(initialGameState);
+		System.out.println("Game started!!!");
+		setInGameScreen(initialGameState, playerId);
 	}
 
 	private void gameEnd() {
 		setGameUninitializedScreen();
 	}
 
-	private void gameUpdate() {
-
+	private void gameUpdate(JSONObject gameState) {
+		this.lastGameStateUpdateTime = System.currentTimeMillis();
+		this.lastGameState = gameState;
 	}
 
 	private void setGameInitializedScreen() {
 		setScreen(new GameInitializedScreen(this));
 	}
 
-	private void setInGameScreen() {
-		setScreen(new InGameScreen(this));
+	private void setInGameScreen(JSONObject initialGameState, int playerId) {
+		setScreen(new InGameScreen(this, initialGameState, playerId));
 	}
 
 	private void setGameUninitializedScreen() {

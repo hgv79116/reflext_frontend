@@ -29,7 +29,7 @@ public class MenuScreen extends SurviScreen {
         super(game);
         this.width = Gdx.graphics.getWidth();
         this.height = Gdx.graphics.getHeight();
-        this.usernameInput = new TextArea("Your username", game.getSkin());
+        this.usernameInput = new TextArea("John Doe x", game.getSkin());
         this.gameIpInput = new TextArea("127.0.0.1:8080", game.getSkin());
         this.joinGameButton = new TextButton("Join", game.getSkin());
         this.createGameButton = new TextButton("Create a new game", game.getSkin());
